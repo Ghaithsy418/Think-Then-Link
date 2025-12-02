@@ -22,6 +22,7 @@ const MainGameUi: React.FC = () => {
     setCurrentState,
     restartLevel,
     exitToMenu,
+    setGrid,
     currentGameState,
   } = useGameStore();
 
@@ -72,14 +73,15 @@ const MainGameUi: React.FC = () => {
     if (!currentGameState) return;
 
     setIsSolving(true);
-    
+
     dfsSolver(
       currentGameState,
       numbersForSolving.reverse(),
       colsNumber,
-      rowsNumber
+      rowsNumber,
+      setGrid
     );
-    
+
     setIsSolving(false);
   }
 
