@@ -1,18 +1,22 @@
-import { Menu } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { BiBulb } from 'react-icons/bi';
-import { RiRestartFill } from 'react-icons/ri';
-import useGameStore from '../../store/gameStore';
-import useSelectNumber from '../../store/selectNumbersStore';
-import GridCell from '../GridCell';
-import GameState from '../gameState';
-import { dfsSolver } from './dfsSolver';
+import { Menu } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { BiBulb } from "react-icons/bi";
+import { RiRestartFill } from "react-icons/ri";
+import useGameStore, { type Grid } from "../../store/gameStore";
+import useSelectNumber from "../../store/selectNumbersStore";
+import GridCell from "../GridCell";
+import GameState from "../gameState";
+import { bfsSolver } from "./bfsSolver";
+import { dfsSolver } from "./dfsSolver";
+
+export let firstGameGrid: Grid = [];
 
 const MainGameUi: React.FC = () => {
   const [isSolving, setIsSolving] = useState(false);
   const {
     grid,
+    firstGridState,
     initialGrid,
     colsNumber,
     rowsNumber,
@@ -20,7 +24,6 @@ const MainGameUi: React.FC = () => {
     activeNumber,
     activePathCoords,
     setCurrentState,
-    restartLevel,
     exitToMenu,
     setGrid,
     currentGameState,
@@ -30,26 +33,26 @@ const MainGameUi: React.FC = () => {
 
   const cellSize = useMemo(() => {
     const maxCells = Math.max(rowsNumber, colsNumber);
-    if (maxCells <= 6) return 'w-16 h-16 text-2xl';
-    if (maxCells <= 10) return 'w-12 h-12 text-xl';
-    if (maxCells <= 15) return 'w-10 h-10 text-lg';
-    return 'w-8 h-8 text-base';
+    if (maxCells <= 6) return "w-16 h-16 text-2xl";
+    if (maxCells <= 10) return "w-12 h-12 text-xl";
+    if (maxCells <= 15) return "w-10 h-10 text-lg";
+    return "w-8 h-8 text-base";
   }, [rowsNumber, colsNumber]);
 
   const gapSize = useMemo(() => {
     const maxCells = Math.max(rowsNumber, colsNumber);
-    if (maxCells <= 6) return 'gap-2';
-    if (maxCells <= 10) return 'gap-1.5';
-    if (maxCells <= 15) return 'gap-1';
-    return 'gap-0.5';
+    if (maxCells <= 6) return "gap-2";
+    if (maxCells <= 10) return "gap-1.5";
+    if (maxCells <= 15) return "gap-1";
+    return "gap-0.5";
   }, [rowsNumber, colsNumber]);
 
   const paddingSize = useMemo(() => {
     const maxCells = Math.max(rowsNumber, colsNumber);
-    if (maxCells <= 6) return 'p-6';
-    if (maxCells <= 10) return 'p-4';
-    if (maxCells <= 15) return 'p-3';
-    return 'p-2';
+    if (maxCells <= 6) return "p-6";
+    if (maxCells <= 10) return "p-4";
+    if (maxCells <= 15) return "p-3";
+    return "p-2";
   }, [rowsNumber, colsNumber]);
 
   const isFinalState = currentGameState?.isFinalState() || false;
@@ -64,25 +67,55 @@ const MainGameUi: React.FC = () => {
 
   useEffect(
     function () {
-      if (isFinalState) toast.success('Congratulations!!');
+      if (isFinalState) toast.success("Congratulations!!");
     },
     [isFinalState]
   );
 
-  function handleDfsSolver() {
+  function handleRestartGame() {
+    setGrid(firstGridState);
+  }
+
+  async function handleDfsSolver() {
     if (!currentGameState) return;
 
-    setIsSolving(true);
+    const deepCloneNumbers = numbersForSolving.map((num) => num);
 
-    dfsSolver(
+    setIsSolving(true);
+    console.log("Timer Started");
+    const before = Date.now();
+    const result = await dfsSolver(
       currentGameState,
-      numbersForSolving.reverse(),
+      deepCloneNumbers.reverse(),
       colsNumber,
       rowsNumber,
       setGrid
     );
-
+    const after = Date.now();
+    console.log(`It took: ${(after - before) / 1000} seconds`);
     setIsSolving(false);
+    if (!result) toast.error("Something went wrong with DFS");
+  }
+
+  async function handleBfsSolver() {
+    if (!currentGameState) return;
+
+    const deepCloneNumbers = numbersForSolving.map((num) => num);
+
+    setIsSolving(true);
+    console.log("Timer Started");
+    const before = Date.now();
+    const result = await bfsSolver(
+      currentGameState,
+      deepCloneNumbers.reverse(),
+      colsNumber,
+      rowsNumber,
+      setGrid
+    );
+    const after = Date.now();
+    console.log(`It took: ${(after - before) / 1000} seconds`);
+    setIsSolving(false);
+    if (!result) toast.error("Something went wrong with DFS");
   }
 
   const isEndpoint = useCallback(
@@ -99,9 +132,9 @@ const MainGameUi: React.FC = () => {
     [activePathCoords]
   );
 
-  if (gameStatus === 'gridSize' || gameStatus === 'setupGrid') return null;
+  if (gameStatus === "gridSize" || gameStatus === "setupGrid") return null;
 
-  const canInteract = !isSolving && gameStatus === 'gameStarted';
+  const canInteract = !isSolving && gameStatus === "gameStarted";
 
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-[500px]">
@@ -116,17 +149,29 @@ const MainGameUi: React.FC = () => {
           <button
             disabled={isSolving}
             onClick={handleDfsSolver}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm text-white shadow-lg transition-all border border-white/10 ${isSolving ? 'bg-slate-700 cursor-wait opacity-80' : 'bg-violet-600 hover:bg-violet-500 hover:scale-105 shadow-violet-500/30'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm text-white shadow-lg transition-all border border-white/10 ${isSolving ? "bg-slate-700 cursor-wait opacity-80" : "bg-violet-600 hover:bg-violet-500 hover:scale-105 shadow-violet-500/30"} disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isSolving ? (
               <span className="animate-spin">⏳</span>
             ) : (
               <BiBulb className="w-6 h-6" />
             )}
-            {isSolving ? 'Solving...' : 'Auto'}
+            {isSolving ? "Solving..." : "DFS Solver"}
           </button>
           <button
-            onClick={restartLevel}
+            disabled={isSolving}
+            onClick={handleBfsSolver}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm text-white shadow-lg transition-all border border-white/10 ${isSolving ? "bg-slate-700 cursor-wait opacity-80" : "bg-violet-600 hover:bg-violet-500 hover:scale-105 shadow-violet-500/30"} disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {isSolving ? (
+              <span className="animate-spin">⏳</span>
+            ) : (
+              <BiBulb className="w-6 h-6" />
+            )}
+            {isSolving ? "Solving..." : "BFS Solver"}
+          </button>
+          <button
+            onClick={handleRestartGame}
             disabled={isSolving}
             className="flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm text-white bg-rose-600 hover:bg-rose-500 active:scale-95 shadow-lg shadow-rose-500/30 transition-all border border-white/10"
           >
@@ -146,7 +191,7 @@ const MainGameUi: React.FC = () => {
           style={{
             gridTemplateColumns: `repeat(${colsNumber}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${rowsNumber}, minmax(0, 1fr))`,
-            maxWidth: 'min(90vw, 85vh)',
+            maxWidth: "min(90vw, 85vh)",
           }}
         >
           {grid.map((row, rowIndex) =>
@@ -160,7 +205,7 @@ const MainGameUi: React.FC = () => {
                   cell={cell}
                   isActive={
                     cell?.value === activeNumber &&
-                    gameStatus === 'gameStarted' &&
+                    gameStatus === "gameStarted" &&
                     isActive
                   }
                   isEndpoint={isEndpoint(rowIndex, colIndex, cell?.value)}

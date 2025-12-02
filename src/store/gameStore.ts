@@ -31,6 +31,7 @@ interface GameStoreTypes {
   selectedCell: SelectedCellType | null;
 
   initialGrid: Grid;
+  firstGridState: Grid;
   grid: Grid;
 
   activeNumber: number | null;
@@ -46,6 +47,7 @@ interface GameStoreTypes {
   setSelectedCell: (newValue: SelectedCellType | null) => void;
   initializeGrid: () => void;
   setGrid: (grid: Grid) => void;
+  setFirstGridState: (grid: Grid) => void;
   startGame: () => void;
 
   exitToMenu: () => void;
@@ -58,6 +60,7 @@ const useGameStore = create<GameStoreTypes>((set, get) => ({
   gameStatus: 'gridSize',
   initialGrid: [],
   grid: [[{ value: null, position: 'start' }]],
+  firstGridState: [],
   activeNumber: null,
   activePathCoords: [],
   lastPosition: null,
@@ -109,6 +112,20 @@ const useGameStore = create<GameStoreTypes>((set, get) => ({
     });
   },
 
+  setFirstGridState: (incomingGrid) => {
+    const distinctNumbers = new Set<GridCell>();
+    incomingGrid.flat().forEach((val) => {
+      if (val !== null)
+        distinctNumbers.add({ position: val.position, value: val.value });
+    });
+
+    const gridClone = incomingGrid.map((row) => [...row]);
+
+    set({
+      firstGridState: gridClone,
+    });
+  },
+
   startGame: () => set({ gameStatus: 'gameStarted' }),
 
   exitToMenu: () => {
@@ -129,7 +146,7 @@ const useGameStore = create<GameStoreTypes>((set, get) => ({
   restartLevel: () => {
     const { initialGrid } = get();
 
-    const cleanGrid = initialGrid.map((row) => [...row]);
+    const cleanGrid = [...initialGrid]
 
     set({
       grid: cleanGrid,

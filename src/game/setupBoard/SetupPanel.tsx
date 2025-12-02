@@ -10,9 +10,14 @@ interface SetupPanelProps {
 
 function SetupPanel({ placedNumbers, setPlacedNumbers }: SetupPanelProps) {
   const [newNumberValue, setNewNumberValue] = useState('');
-  const startGame = useGameStore((state) => state.startGame);
+  const { startGame, grid, setFirstGridState } = useGameStore((state) => state);
   const { numbers, setNumbers, selectedCells, setSelectedCells } =
     useSelectNumber();
+
+  const handleStart = () => {
+    startGame();
+    setFirstGridState(grid)
+  }
 
   const resetSetup = () => {
     setPlacedNumbers(new Set());
@@ -88,11 +93,10 @@ function SetupPanel({ placedNumbers, setPlacedNumbers }: SetupPanelProps) {
               <div
                 key={idx}
                 className={`flex items-center justify-between p-3 rounded-xl border transition-all
-                        ${
-                          placedNumbers.has(num)
-                            ? 'bg-green-900/30 border-green-500/50'
-                            : 'bg-slate-900/60 border-violet-500/30 group hover:border-violet-400/60'
-                        }`}
+                        ${placedNumbers.has(num)
+                    ? 'bg-green-900/30 border-green-500/50'
+                    : 'bg-slate-900/60 border-violet-500/30 group hover:border-violet-400/60'
+                  }`}
               >
                 <span
                   className={`font-semibold ${placedNumbers.has(num) ? 'text-green-300' : 'text-violet-300'}`}
@@ -184,7 +188,7 @@ function SetupPanel({ placedNumbers, setPlacedNumbers }: SetupPanelProps) {
             Reset
           </button>
           <button
-            onClick={startGame}
+            onClick={handleStart}
             disabled={
               placedNumbers.size !== numbers.length || numbers.length === 0
             }

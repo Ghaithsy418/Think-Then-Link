@@ -107,7 +107,15 @@ export default class GameState {
     return !isDone;
   }
 
-  public getHashOfState() {}
+  public getHashOfState() {
+    return this.currentState
+      .map((row) =>
+        row
+          .map((cell) => `${cell.position}:${cell.value}`)
+          .join(',')
+      )
+      .join('|');
+  }
 
   public isVisitedState() {
     return this.isVisited;
@@ -117,5 +125,5 @@ export default class GameState {
     this.isVisited = true;
   }
 
-  public copyState() {}
+  public copyState() { }
 }
