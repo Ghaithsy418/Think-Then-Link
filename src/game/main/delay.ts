@@ -1,1 +1,1 @@
-export const delayTime: number = 10;
+export const delayTime: number = 1;

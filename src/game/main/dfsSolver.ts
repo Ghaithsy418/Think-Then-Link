@@ -12,7 +12,7 @@ export async function dfsSolver(
   setGrid: (newState: Grid) => void
 ) {
   if (currentGameState.isFinalState()) {
-    console.log(allGameStates, [...allGameStates].length);
+    console.log([...allGameStates], [...allGameStates].length);
     allGameStates.clear();
     return true;
   }

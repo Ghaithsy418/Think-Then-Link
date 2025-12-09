@@ -1,8 +1,8 @@
-import type { Grid } from "../../store/gameStore";
-import type { NumbersForSolvingType } from "../../store/selectNumbersStore";
-import GameState from "../gameState";
-import { delayTime } from "./delay";
-import { allGameStates } from "./StoringStates";
+import type { Grid } from '../../store/gameStore';
+import type { NumbersForSolvingType } from '../../store/selectNumbersStore';
+import GameState from '../gameState';
+import { delayTime } from './delay';
+import { allGameStates } from './StoringStates';
 
 type QueueItem = {
   state: GameState;
@@ -33,7 +33,7 @@ export async function bfsSolver(
     await new Promise((resolve) => setTimeout(resolve, delayTime));
 
     if (state.isFinalState()) {
-      console.log(allGameStates, [...allGameStates].length);
+      console.log([...allGameStates], [...allGameStates].length);
       allGameStates.clear();
       return true;
     }
@@ -62,7 +62,7 @@ export async function bfsSolver(
 
     if (lastNumber) {
       const newGrid = state.currentState.map((r) => [...r]);
-      newGrid[row][col] = { position: "mid", value };
+      newGrid[row][col] = { position: 'mid', value };
       heads.pop();
       const newState = new GameState(newGrid);
       queue.push({ state: newState, heads });
@@ -73,8 +73,8 @@ export async function bfsSolver(
       for (const move of possibleMoves) {
         const newGrid = state.currentState.map((r) => [...r]);
 
-        newGrid[row][col] = { position: "mid", value };
-        newGrid[move.row][move.col] = { position: "start", value };
+        newGrid[row][col] = { position: 'mid', value };
+        newGrid[move.row][move.col] = { position: 'start', value };
 
         const newState = new GameState(newGrid);
 

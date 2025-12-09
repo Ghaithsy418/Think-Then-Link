@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Menu } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -10,6 +11,7 @@ import GameState from "../gameState";
 import { bfsSolver } from "./bfsSolver";
 import { dfsSolver } from "./dfsSolver";
 
+// eslint-disable-next-line prefer-const
 export let firstGameGrid: Grid = [];
 
 const MainGameUi: React.FC = () => {
